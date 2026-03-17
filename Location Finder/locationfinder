@@ -1,0 +1,234 @@
+Activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:background="@drawable/lat2">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:text="Location Finder"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- Place to Lat Long -->
+
+            <EditText
+                android:id="@+id/placeInput"
+                android:hint="Enter Place Name"
+                android:background="#FFFFFF"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/btnLatLong"
+                android:text="Get Latitude and Longitude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <!-- Lat Long to Place -->
+
+            <EditText
+                android:id="@+id/latInput"
+                android:hint="Enter Latitude"
+                android:inputType="numberDecimal"
+                android:background="#FFFFFF"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <EditText
+                android:id="@+id/lngInput"
+                android:hint="Enter Longitude"
+                android:inputType="numberDecimal"
+                android:background="#FFFFFF"
+                android:padding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/btnPlace"
+                android:text="Get Place Name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/resultText"
+                android:text="Result will appear here"
+                android:textSize="18sp"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>
+
+MainActivity.java
+package com.example.locationfinder;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.location.Address;
+import android.location.Geocoder;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
+public class MainActivity extends AppCompatActivity {
+
+    EditText placeInput, latInput, lngInput;
+    Button btnLatLong, btnPlace;
+    TextView resultText;
+
+    Geocoder geocoder;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        placeInput = findViewById(R.id.placeInput);
+        latInput = findViewById(R.id.latInput);
+        lngInput = findViewById(R.id.lngInput);
+        btnLatLong = findViewById(R.id.btnLatLong);
+        btnPlace = findViewById(R.id.btnPlace);
+        resultText = findViewById(R.id.resultText);
+
+        geocoder = new Geocoder(this, Locale.getDefault());
+
+        // Place -> Latitude Longitude
+        btnLatLong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String place = placeInput.getText().toString();
+
+                if(place.isEmpty()){
+                    resultText.setText("Please enter place name");
+                    return;
+                }
+
+                try {
+
+                    List<Address> addresses =
+                            geocoder.getFromLocationName(place,1);
+
+                    if(addresses != null && addresses.size() > 0){
+
+                        double lat = addresses.get(0).getLatitude();
+                        double lng = addresses.get(0).getLongitude();
+
+                        resultText.setText(
+                                "Latitude : " + lat +
+                                        "\nLongitude : " + lng);
+
+                    }else{
+                        resultText.setText("Location not found");
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // Latitude Longitude -> Place
+        btnPlace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String latText = latInput.getText().toString();
+                String lngText = lngInput.getText().toString();
+
+                if(latText.isEmpty() || lngText.isEmpty()){
+                    resultText.setText("Enter latitude and longitude");
+                    return;
+                }
+
+                double lat = Double.parseDouble(latText);
+                double lng = Double.parseDouble(lngText);
+
+                try {
+
+                    List<Address> addresses =
+                            geocoder.getFromLocation(lat,lng,1);
+
+                    if(addresses != null && addresses.size() > 0){
+
+                        String address =
+                                addresses.get(0).getAddressLine(0);
+
+                        resultText.setText("Place : " + address);
+
+                    }else{
+                        resultText.setText("Place not found");
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+}
+
+AndroidManifest.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.locationfinder">
+
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Location Finder"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+        </activity>
+
+    </application>
+
+</manifest>
+
+
