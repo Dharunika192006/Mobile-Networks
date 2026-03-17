@@ -1,0 +1,197 @@
+Activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/smss"
+    android:padding="20dp">
+
+    <!-- College Title -->
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CHRIST UNIVERSITY"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:fontFamily="cursive"
+        android:textColor="#FFFFFF"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp" />
+
+    <!-- Student Name -->
+
+    <EditText
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Student Name"
+        android:layout_below="@id/title"
+        android:layout_marginTop="50dp"
+        android:background="#FFFFFF"
+        android:padding="10dp"/>
+
+    <!-- Department -->
+
+    <EditText
+        android:id="@+id/dept"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Department"
+        android:layout_below="@id/name"
+        android:layout_marginTop="15dp"
+        android:background="#FFFFFF"
+        android:padding="10dp"/>
+
+    <!-- Degree -->
+
+    <EditText
+        android:id="@+id/degree"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Degree"
+        android:layout_below="@id/dept"
+        android:layout_marginTop="15dp"
+        android:background="#FFFFFF"
+        android:padding="10dp"/>
+
+    <!-- Phone -->
+
+    <EditText
+        android:id="@+id/phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Phone Number"
+        android:inputType="phone"
+        android:layout_below="@id/degree"
+        android:layout_marginTop="15dp"
+        android:background="#FFFFFF"
+        android:padding="10dp"/>
+
+    <!-- Register Button -->
+
+    <Button
+        android:id="@+id/register"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="REGISTER"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_below="@id/phone"
+        android:layout_marginTop="25dp"
+        android:backgroundTint="#0066CC"
+        android:textColor="#FFFFFF"/>
+
+</RelativeLayout>
+
+MainActivity.java
+package com.example.collegeregistration;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.telephony.SmsManager;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity {
+
+    EditText name, dept, degree, phone;
+    Button register;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        name = findViewById(R.id.name);
+        dept = findViewById(R.id.dept);
+        degree = findViewById(R.id.degree);
+        phone = findViewById(R.id.phone);
+        register = findViewById(R.id.register);
+
+        // Request SMS Permission
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.SEND_SMS}, 1);
+        }
+
+        register.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String studentName = name.getText().toString();
+                String department = dept.getText().toString();
+                String deg = degree.getText().toString();
+                String phoneNumber = phone.getText().toString();
+
+                String message =
+                        "🎓 CHRIST UNIVERSITY\n\n" +
+                                "Hello " + studentName + "!\n\n" +
+                                "Your registration is successful.\n" +
+                                "Department: " + department + "\n" +
+                                "Degree: " + deg + "\n\n" +
+                                "Welcome to Christ University.";
+
+                try {
+
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+
+                    Toast.makeText(MainActivity.this,
+                            "Registration Successful! SMS Sent",
+                            Toast.LENGTH_LONG).show();
+
+                } catch (Exception e) {
+
+                    Toast.makeText(MainActivity.this,
+                            "SMS Failed to Send",
+                            Toast.LENGTH_LONG).show();
+                }
+
+            }
+        });
+    }
+}
+
+AndroidManifest.xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.collegeregistration">
+
+    <!-- SMS Permission -->
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+
+    <!-- Telephony feature -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+
+    <application
+        android:allowBackup="true"
+        android:label="College Registration"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+        </activity>
+
+    </application>
+
+</manifest>
+
